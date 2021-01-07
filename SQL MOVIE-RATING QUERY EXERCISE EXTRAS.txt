@@ -1,0 +1,126 @@
+Q1
+0 points (ungraded)
+Find the names of all reviewers who rated Gone with the Wind.
+
+select distinct name
+from Reviewer inner join Rating using(rID) inner join Movie using (mID)
+where title = 'Gone with the Wind'
+
+Q2
+0 points (ungraded)
+For any rating where the reviewer is the same as the director of the movie, return the reviewer name, movie title, and number of stars.
+
+select distinct Reviewer.name, Movie.title, Rating.stars
+from Reviewer inner join Rating using(rID) inner join Movie using (mID)
+where Reviewer.name = Movie.director
+
+Q3
+0 points (ungraded)
+Return all reviewer names and movie names together in a single list, alphabetized. (Sorting by the first name of the reviewer and first word in the title is fine; no need for special processing on last names or removing "The".)
+
+SELECT title FROM Movie
+UNION
+SELECT name FROM Reviewer
+ORDER BY name, title;
+
+Q4
+0 points (ungraded)
+Find the titles of all movies not reviewed by Chris Jackson.
+
+select distinct title 
+from Movie
+where title not in
+(select title
+from Movie
+inner join Rating ra1 using(mID)
+inner join Reviewer re1 using(rID)
+where name = 'Chris Jackson')
+
+Q5
+0 points (ungraded)
+For all pairs of reviewers such that both reviewers gave a rating to the same movie, return the names of both reviewers. Eliminate duplicates, don't pair reviewers with themselves, and include each pair only once. For each pair, return the names in the pair in alphabetical order.
+
+select distinct re1.name, re2.name
+from Rating ra1, Rating ra2, Reviewer re1, Reviewer re2
+where ra1.mID = ra2.mID
+and re1.name < re2.name
+and re1.rID = ra1.rID
+and re2.rID = ra2.rID
+order by re1.name, re2.name
+
+
+Q6
+0 points (ungraded)
+For each rating that is the lowest (fewest stars) currently in the database, return the reviewer name, movie title, and number of stars.
+
+select distinct name, title, stars
+from Rating
+inner join Movie using(mID)
+inner join Reviewer using(rID)
+where stars = (select MIN(stars) from Rating)
+
+Q7
+0 points (ungraded)
+List movie titles and average ratings, from highest-rated to lowest-rated. If two or more movies have the same average rating, list them in alphabetical order.
+
+select title, avg(stars) as average_stars
+from Movie inner join Rating using(mID)
+group by title
+order by average_stars desc, title
+
+Q8
+0 points (ungraded)
+Find the names of all reviewers who have contributed three or more ratings. (As an extra challenge, try writing the query without HAVING or without COUNT.)
+
+select name
+from
+(select count(name) as name_count, name 
+from Rating inner join Reviewer using(rID)
+group by name)
+where name_count > 2;
+
+SELECT name
+FROM Reviewer
+INNER JOIN Rating USING(rId)
+GROUP BY rId
+HAVING COUNT(*) >= 3
+
+Q9
+0 points (ungraded)
+Some directors directed more than one movie. For all such directors, return the titles of all movies directed by them, along with the director name. Sort by director name, then movie title. (As an extra challenge, try writing the query both with and without COUNT.)
+
+SELECT m1.title, m1.director
+FROM Movie m1 inner join Movie m2
+where m1.director = m2.director
+and m2.title <> m1.title
+order by m1.director, m1.title
+
+Q10
+0 points (ungraded)
+Find the movie(s) with the highest average rating. Return the movie title(s) and average rating. (Hint: This query is more difficult to write in SQLite than other systems; you might think of it as finding the highest average rating and then choosing the movie(s) with that average rating.)
+
+select title, average_stars 
+from (select avg(stars) as average_stars, title from Rating inner join Movie using(mID) group by mID) 
+where average_stars = (select max(average_stars) 
+from (select avg(stars) as average_stars, title from Rating inner join Movie using(mID) group by mID))
+
+Q11
+0 points (ungraded)
+Find the movie(s) with the lowest average rating. Return the movie title(s) and average rating. (Hint: This query may be more difficult to write in SQLite than other systems; you might think of it as finding the lowest average rating and then choosing the movie(s) with that average rating.)
+
+select title, average_stars 
+from (select avg(stars) as average_stars, title from Rating inner join Movie using(mID) group by mID) 
+where average_stars = (select min(average_stars) 
+from (select avg(stars) as average_stars, title from Rating inner join Movie using(mID) group by mID))
+
+Q12
+0 points (ungraded)
+For each director, return the director's name together with the title(s) of the movie(s) they directed that received the highest rating among all of their movies, and the value of that rating. Ignore movies whose director is NULL.
+
+select director, title, stars
+from Movie inner join Rating using(mID)
+where director <> ''
+group by director
+having stars = max(stars)
+
+
